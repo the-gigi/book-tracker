@@ -4,7 +4,8 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         Integer,
                         String,
-                        Boolean)
+                        Boolean,
+                        Index)
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -17,10 +18,10 @@ metadata = Base.metadata
 class Book(Base):
     __tablename__ = 'book'
     id = Column(Integer, primary_key=True)
-    name = Column(String(256), unique=True, nullable=False)
+    name = Column(String(256), unique=True, nullable=False, index=True)
     isbn = Column(String(13), nullable=False)
     url = Column(String(1024), nullable=False)
-    track = Column(Boolean, default=True)
+    track = Column(Boolean, default=True, index=True)
 
 
 class Category(Base):
@@ -40,3 +41,4 @@ class Rank(Base):
     book = relationship('Book')
     category = relationship('Category')
 
+    Index('ix_book_category_timestamp', 'book', 'category', 'timestamp', unique=True)
