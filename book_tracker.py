@@ -7,42 +7,50 @@ from scrape_page import scrape_page
 import models as m
 
 
-def fetch_book_urls():
-    session = get_session()
+def fetch_books(session):
+
+    return
+
+
+def update_rank(session, book, category_name, rank, timestamp):
     q = session.query
-    urls = q(m.Book.url).all()
-    return urls
+    category = q(m.Category).filter_by(name=category_name).scalar()
+    if category is None:
+        category = m.Category(name=category_name)
+        session.add(category)
+
+    rank = m.Rank(book=book,
+                  category=category,
+                  rank=rank,
+                  timestamp=timestamp)
+    session.add(rank)
 
 
-def update_rank(category_name, rank):
+def track_books(timestamp):
     session = get_session()
-    q = session.query
-
-    categories = q(m.Category.name).all()
-    if category_name not in categories:
-        session.add(m.Category())
-
-
-def track_books():
     try:
-        books = fetch_book_urls()
+        q = session.query
+        books = q(m.Book).filter_by(track=True).all()
         for book in books:
+            print(f'[{timestamp}] --- {book.name} ---')
             r = scrape_page(book.url)
             for category_name, rank in r['categories'].items():
-                update_rank(category_name, rank)
+                print(f'{category_name}: {rank}')
+                update_rank(session, book, category_name, rank, timestamp)
+        session.commit()
     except Exception as e:
-        pass
+        session.rollback()
+        print(e)
 
 
 def main():
     """
-
     """
     hour = timedelta(hours=1)
     while True:
-        start = datetime.now()
-        track_books()
-        until_next_hour = (start + hour - datetime.now()).seconds
+        start = datetime.utcnow().replace(second=0, microsecond=0)
+        track_books(start)
+        until_next_hour = (start + hour - datetime.utcnow()).seconds
         time.sleep(until_next_hour)
 
 

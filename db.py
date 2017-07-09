@@ -1,8 +1,6 @@
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import base
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from models import Base
@@ -17,7 +15,7 @@ def get_session():
 
 
 def init():
-    connection_string = os.environ['BOOK_TRACKER_CONNECTION_STRING']
+    connection_string = os.environ.get('BOOK_TRACKER_CONNECTION_STRING', 'sqlite:///book-tracker.db')
     db = create_engine(connection_string)
     global Session
     Session = sessionmaker(db)

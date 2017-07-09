@@ -29,7 +29,8 @@ class Category(Base):
     name = Column(String(1024))
 
 
-class SalesRank(Base):
+class Rank(Base):
+    __tablename__ = 'rank'
     id = Column(Integer, primary_key=True)
     book_id = Column(ForeignKey('book.id'), nullable=False)
     category_id = Column(ForeignKey('category.id'), nullable=False)
