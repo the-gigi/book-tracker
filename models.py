@@ -36,6 +36,7 @@ class Rank(Base):
     book_id = Column(ForeignKey('book.id'), nullable=False)
     category_id = Column(ForeignKey('category.id'), nullable=False)
     rank = Column(Integer, nullable=False)
+    change = Column(Integer)
     timestamp = Column(DateTime, nullable=False, default=datetime.now)
 
     book = relationship('Book')
