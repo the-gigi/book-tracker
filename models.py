@@ -23,10 +23,10 @@ class Book(Base):
     track = Column(Boolean, default=True)
 
 
-class Categories(Base):
+class Category(Base):
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    name = url = Column(String(1024))
+    name = Column(String(1024))
 
 
 class SalesRank(Base):
@@ -34,6 +34,7 @@ class SalesRank(Base):
     book_id = Column(ForeignKey('book.id'), nullable=False)
     category_id = Column(ForeignKey('category.id'), nullable=False)
     rank = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, nullable=False, default=datetime.now)
 
     book = relationship('Book')
     category = relationship('Category')
