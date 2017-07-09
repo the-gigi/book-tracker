@@ -22,6 +22,7 @@ def update_rank(category_name, rank):
     if category_name not in categories:
         session.add(m.Category())
 
+
 def track_books():
     try:
         books = fetch_book_urls()
