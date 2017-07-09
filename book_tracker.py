@@ -19,9 +19,17 @@ def update_rank(session, book, category_name, rank, timestamp):
         category = m.Category(name=category_name)
         session.add(category)
 
+    # Get last rank
+    try:
+        last_rank = q(m.Rank).filter_by(book=book, category=category).order_by(m.Rank.timestamp.desc()).first().rank
+        change = rank - last_rank
+    except Exception as e:
+        change = 0
+
     rank = m.Rank(book=book,
                   category=category,
                   rank=rank,
+                  change=change,
                   timestamp=timestamp)
     session.add(rank)
 
