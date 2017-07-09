@@ -3,13 +3,9 @@ import time
 
 from db import get_session
 from scrape_page import scrape_page
-
 import models as m
 
-
-def fetch_books(session):
-
-    return
+HOUR = timedelta(hours=1)
 
 
 def update_rank(session, book, category_name, rank, timestamp):
@@ -18,8 +14,6 @@ def update_rank(session, book, category_name, rank, timestamp):
     if category is None:
         category = m.Category(name=category_name)
         session.add(category)
-
-    # Get last rank
     try:
         last_rank = q(m.Rank).filter_by(book=book, category=category).order_by(m.Rank.timestamp.desc()).first().rank
         change = rank - last_rank
@@ -38,6 +32,12 @@ def track_books(timestamp):
     session = get_session()
     try:
         q = session.query
+        last_update_time = q(m.Rank).order_by(m.Rank.timestamp.desc()).first().timestamp
+        time_since_last_update = timestamp - last_update_time
+        if time_since_last_update < HOUR:
+            until_next_hour = ((last_update_time + HOUR) - timestamp).seconds
+            print(f'Sleeping {until_next_hour // 60} minutes until {last_update_time + HOUR}')
+            time.sleep(until_next_hour)
         books = q(m.Book).filter_by(track=True).all()
         for book in books:
             print(f'[{timestamp}] --- {book.name} ---')
@@ -54,11 +54,11 @@ def track_books(timestamp):
 def main():
     """
     """
-    hour = timedelta(hours=1)
+
     while True:
         start = datetime.utcnow().replace(second=0, microsecond=0)
         track_books(start)
-        until_next_hour = (start + hour - datetime.utcnow()).seconds
+        until_next_hour = (start + HOUR - datetime.utcnow()).seconds
         time.sleep(until_next_hour)
 
 
