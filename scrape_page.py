@@ -25,6 +25,13 @@ def scrape_page(url):
         rank = int(c.find('span', {'class': 'zg_hrsr_rank'}).text[1:])
         result['categories'][name] = rank
 
+    # Add the Amazon best seller rank as another category
+    text = page.find('li', {'id': 'SalesRank'}).text
+    tokens = [a for a in text.split('\n') if a]
+    name = tokens[0].split(':')[0]
+    rank = int(tokens[1].split()[0][1:].replace(',', ''))
+    result['categories'][name] = rank
+
     return result
 
 
