@@ -30,10 +30,10 @@ def update_rank(session, book, category_name, rank, timestamp):
 
 def track_books():
     session = get_session()
+    timestamp = datetime.utcnow().replace(second=0, microsecond=0)
     try:
         q = session.query
         last_update_time = q(m.Rank).order_by(m.Rank.timestamp.desc()).first().timestamp
-        timestamp = datetime.utcnow().replace(second=0, microsecond=0)
         time_since_last_update = timestamp - last_update_time
         if time_since_last_update < HOUR:
             timestamp = last_update_time + HOUR
@@ -52,6 +52,9 @@ def track_books():
     except Exception as e:
         session.rollback()
         print(e)
+    finally:
+        naptime = (timestamp + HOUR - datetime.utcnow().replace(second=0, microsecond=0)).seconds
+        time.sleep(naptime)
 
 
 def main():
