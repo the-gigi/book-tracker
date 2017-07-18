@@ -28,16 +28,19 @@ def update_rank(session, book, category_name, rank, timestamp):
     session.add(rank)
 
 
-def track_books(timestamp):
+def track_books():
     session = get_session()
     try:
         q = session.query
         last_update_time = q(m.Rank).order_by(m.Rank.timestamp.desc()).first().timestamp
+        timestamp = datetime.utcnow().replace(second=0, microsecond=0)
         time_since_last_update = timestamp - last_update_time
         if time_since_last_update < HOUR:
-            until_next_hour = ((last_update_time + HOUR) - timestamp).seconds
+            timestamp = last_update_time + HOUR
+            until_next_hour = (last_update_time + HOUR - timestamp).seconds
             print(f'Sleeping {until_next_hour // 60} minutes until {last_update_time + HOUR}')
             time.sleep(until_next_hour)
+
         books = q(m.Book).filter_by(track=True).all()
         for book in books:
             print(f'[{timestamp}] --- {book.name} ---')
@@ -54,12 +57,8 @@ def track_books(timestamp):
 def main():
     """
     """
-
     while True:
-        start = datetime.utcnow().replace(second=0, microsecond=0)
-        track_books(start)
-        until_next_hour = (start + HOUR - datetime.utcnow()).seconds
-        time.sleep(until_next_hour)
+        track_books()
 
 
 if __name__ == '__main__':
