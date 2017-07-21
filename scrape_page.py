@@ -14,6 +14,9 @@ def scrape_page(url):
     page = BeautifulSoup(content, 'html.parser')
 
     title = page.find('h1', {'id': 'title'})
+    if title is None:
+        print('The title is missing for "{}". Skipping :-('.format(url))
+        return
     book_name = ' - '.join(x.text.strip() for x in title.findAll('span'))
 
     result = dict(book_name=book_name,
