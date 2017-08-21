@@ -1,21 +1,37 @@
+import random
 from collections import OrderedDict
 from pprint import pprint
 
 import requests
 from bs4 import BeautifulSoup
 
+proxies = (
+    '101.109.242.136:80',
+    '202.169.238.51:53281',
+    '212.90.167.90:65309'
+)
+
 
 def scrape_page(url):
     """
     """
-    r = requests.get(url)
+    headers = {
+        'Connection':'close',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0'}
+    proxy = random.choice(proxies)
+    print('Proxy:', proxy)
+    r = requests.get(url, proxies=dict(http=proxy), headers=headers)
     content = r.content.decode('utf-8')
 
     page = BeautifulSoup(content, 'html.parser')
 
     title = page.find('h1', {'id': 'title'})
     if title is None:
-        print('The title is missing for "{}". Skipping :-('.format(url))
+        if 'Robot Check' in content:
+            print('Oh-oh, robot check failed. Shuffle proxy list and/or UA list...')
+        else:
+            print('The title is missing for "{}". Skipping :-('.format(url))
+        open('content.txt', 'w').write(content)
         return
     book_name = ' - '.join(x.text.strip() for x in title.findAll('span'))
 
@@ -48,6 +64,7 @@ def main():
         r = scrape_page(url)
         pprint(r)
         print('-' * 10)
+
 
 if __name__ == '__main__':
     main()
