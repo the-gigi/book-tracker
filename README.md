@@ -43,3 +43,13 @@ those times and books were all 4 categories (including the global AWS best selle
             select * from rank where change < 0)
         group by timestamp, book_id)
    where changes = 4;```
+
+
+# Reference
+
+http://scrapoxy.io/
+https://superuser.com/questions/322376/how-to-install-the-real-firefox-on-debian
+http://scraping.pro/use-headless-firefox-scraping-linux/ (old, using xvfb)
+https://developer.mozilla.org/en-US/Firefox/Headless_mode (Node.js)
+https://intoli.com/blog/running-selenium-with-headless-firefox/ (Python on Windows)
+https://developers.google.com/web/updates/2017/04/headless-chrome

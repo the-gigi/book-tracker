@@ -1,28 +1,43 @@
+import json
 import random
 from collections import OrderedDict
 from pprint import pprint
-
 import requests
 from bs4 import BeautifulSoup
 
-proxies = (
-    '101.109.242.136:80',
-    '202.169.238.51:53281',
-    '212.90.167.90:65309'
-)
+from config import proxies, user_agents
+
+
+def get_proxy():
+    r = requests.get('http://pubproxy.com/api/proxy')
+    if not r.ok:
+        return random.choice(proxies)
+
+    content = json.loads(r.content)
+    return content['data'][0]['ipPort']
+
+
+def get_user_agent():
+    return random.choice(user_agents)
+
+
+def get_page_content(url):
+    headers = {
+        'Connection': 'close',
+        'User-Agent': get_user_agent()
+    }
+
+    proxy = get_proxy()
+    print('Proxy:', proxy)
+    r = requests.get(url, proxies=dict(http=proxy), headers=headers)
+    content = r.content.decode('utf-8')
+    return content
 
 
 def scrape_page(url):
     """
     """
-    headers = {
-        'Connection':'close',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:54.0) Gecko/20100101 Firefox/54.0'}
-    proxy = random.choice(proxies)
-    print('Proxy:', proxy)
-    r = requests.get(url, proxies=dict(http=proxy), headers=headers)
-    content = r.content.decode('utf-8')
-
+    content = get_page_content(url)
     page = BeautifulSoup(content, 'html.parser')
 
     title = page.find('h1', {'id': 'title'})
