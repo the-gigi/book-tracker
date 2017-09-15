@@ -18,12 +18,19 @@ a REST API is available at `http://localhost:5000`
 The admin interface is avaialble at: `http://localhost:5000/admin`
 
 
-# Query to find the floor of number of books sold based on total Amazon sales rank
+# Query to find the floor of number of books sold based on rank change of more than 5000 (applies to best seller rank)
 
-`sqlite3 book-tracker.db "select count(*) from rank where category_id=6 and change < 0;"`
+```
+select count(*) from rank where change < -5000;
+```
+
+Use with watch to monitor change
+
+```
+watch -n 360 'sqlite3 book-tracker.db "select count(*) from rank where change < -5000;"'
+```
 
 # Queries to find floor of number of books sold based on average change in categories
-
 
 Ignore the global best seller rank, average the other categories and pick those with average less then -1
 
@@ -36,20 +43,14 @@ Ignore the global best seller rank, average the other categories and pick those 
 
 
 Use 2 sub-selects. first select all the negative changes. Then, group them by timestamp and book id. Finally, keep only
-those times and books were all 4 categories (including the global AWS best seller rank) improved at the same time.
+those times and books were all 4 categories (including the global AWS best seller rank) improved at the same time and
+the sum of changes was less than 5000 to accomodate for eal shift and not just Amazon removing other books from
+category.
 
 ```select book_id, timestamp from (
-        select book_id, timestamp, count(*) as changes from (
+        select book_id, timestamp, count(*) as changes, sum(change) as total  from (
             select * from rank where change < 0)
         group by timestamp, book_id)
-   where changes = 4;```
+   where changes = 4 and total < -5000;```
 
 
-# Reference
-
-http://scrapoxy.io/
-https://superuser.com/questions/322376/how-to-install-the-real-firefox-on-debian
-http://scraping.pro/use-headless-firefox-scraping-linux/ (old, using xvfb)
-https://developer.mozilla.org/en-US/Firefox/Headless_mode (Node.js)
-https://intoli.com/blog/running-selenium-with-headless-firefox/ (Python on Windows)
-https://developers.google.com/web/updates/2017/04/headless-chrome
