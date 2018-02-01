@@ -18,16 +18,16 @@ a REST API is available at `http://localhost:5000`
 The admin interface is avaialble at: `http://localhost:5000/admin`
 
 
-# Query to find the floor of number of books sold based on rank change of more than 5000 (applies to best seller rank)
+# Query to find the floor of number of books sold based on rank change of more than 12500 (applies to best seller rank)
 
 ```
-select count(*) from rank where change < -5000;
+select count(*) from rank where change < -12500;
 ```
 
 Use with watch to monitor change
 
 ```
-watch -n 360 'sqlite3 book-tracker.db "select count(*) from rank where change < -5000;"'
+watch -n 360 'sqlite3 book-tracker.db "select count(*) from rank where change < -12500;"'
 ```
 
 # Queries to find floor of number of books sold based on average change in categories
@@ -51,6 +51,12 @@ category.
         select book_id, timestamp, count(*) as changes, sum(change) as total  from (
             select * from rank where change < 0)
         group by timestamp, book_id)
-   where changes = 4 and total < -5000;```
+   where changes = 4 and total < -12500;```
 
 
+```
+
+Here is the ultimate query, including time formatting
+```
+sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=6 and change < -12500 and timestamp > datetime('now','-2 day');"
+```
