@@ -4,7 +4,10 @@ Keep track of the sales rank of books on Amazon
 
 # Installation
 
-`pip install -r requirements.txt`
+
+Requires [pipenv](https://docs.pipenv.org/)
+
+`pipenv install`
 
 
 # REST API + Admin interface
@@ -18,7 +21,9 @@ a REST API is available at `http://localhost:5000`
 The admin interface is avaialble at: `http://localhost:5000/admin`
 
 
-# Query to find the floor of number of books sold based on rank change of more than 12500 (applies to best seller rank)
+# Queries
+
+## Query to find the floor of number of books sold based on rank change of more than 12500 (applies to best seller rank)
 
 ```
 select count(*) from rank where change < -12500;
@@ -30,7 +35,7 @@ Use with watch to monitor change
 watch -n 360 'sqlite3 book-tracker.db "select count(*) from rank where change < -12500;"'
 ```
 
-# Queries to find floor of number of books sold based on average change in categories
+## Queries to find floor of number of books sold based on average change in categories
 
 Ignore the global best seller rank, average the other categories and pick those with average less then -1
 
@@ -56,7 +61,7 @@ category.
 
 ```
 
-Here is the ultimate query, including time formatting
+## Here is the ultimate query, including time formatting
 ```
 sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=6 and change < -12500 and timestamp > datetime('now','-2 day');"
 ```

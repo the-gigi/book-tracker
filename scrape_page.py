@@ -3,6 +3,7 @@ import random
 from collections import OrderedDict
 from pprint import pprint
 import requests
+from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 
 from config import proxies, user_agents
@@ -21,7 +22,7 @@ def get_user_agent():
     return random.choice(user_agents)
 
 
-def get_page_content(url):
+def get_page_content_with_requests(url):
     headers = {
         'Connection': 'close',
         'User-Agent': get_user_agent()
@@ -34,10 +35,28 @@ def get_page_content(url):
     return content
 
 
-def scrape_page(url):
+def get_page_content_with_selenium(url):
+    """ """
+    # proxy = get_proxy()
+    # p = Proxy()
+    # p.proxy_type = ProxyType.MANUAL
+    # p.http_proxy = proxy
+    # p.socks_proxy = proxy
+    # p.ssl_proxy = proxy
+    #
+    # capabilities = webdriver.DesiredCapabilities.CHROME
+    # p.add_to_capabilities(capabilities)
+    # global driver
+    # # driver = webdriver.Chrome(desired_capabilities=capabilities)
+    # driver = webdriver.Chrome()
+    # driver.get(url)
+
+
+def scrape_page_with_requests(url):
     """
     """
-    content = get_page_content(url)
+    result = ''
+    content = get_page_content_with_requests(url)
     page = BeautifulSoup(content, 'html.parser')
 
     title = page.find('h1', {'id': 'title'})
@@ -64,6 +83,41 @@ def scrape_page(url):
     tokens = [a for a in text.split('\n') if a]
     name = tokens[0].split(':')[0]
     rank = int(tokens[1].split()[0][1:].replace(',', ''))
+    result['categories'][name] = rank
+
+    return result
+
+
+def scrape_page(url):
+    session = HTMLSession()
+    r = session.get(url)
+    r.html.render()
+    page = r.html
+    title = page.find('#title')[0].find('span')
+    if title is None:
+        if 'Robot Check' in r.content:
+            print('Oh-oh, robot check failed. Shuffle proxy list and/or UA list...')
+        else:
+            print('The title is missing for "{}". Skipping :-('.format(url))
+        open('content.txt', 'w').write(r.content)
+        return
+    book_name = ' - '.join(x.text.strip() for x in title)
+
+    result = dict(book_name=book_name,
+                  categories=OrderedDict())
+
+    categories = page.find('#SalesRank > ul > li')
+
+    for c in categories:
+        name = '/'.join(x.text.replace(' >', '') for x in c.find('a'))
+        rank = int(c.find('span')[0].text[1:])
+        result['categories'][name] = rank
+
+    # Add the Amazon best seller rank as another category
+    text = page.find('#SalesRank')[0].text
+    tokens = [a for a in text.split('\n') if a][0].split(':')
+    name = tokens[0]
+    rank = int(tokens[1].strip().split(' ')[0][1:].replace(',', ''))
     result['categories'][name] = rank
 
     return result
