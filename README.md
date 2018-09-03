@@ -41,10 +41,14 @@ Ignore the global best seller rank, average the other categories and pick those 
 
 ```select * from (select book_id, timestamp, avg(change) as average
    from rank where category_id <> 6 group by timestamp, book_id)
-   where average < -1;```
+   where average < -1;
+```
 
 
-```select * from (select book_id, timestamp, avg(change) as average from rank where category_id <> 6 group by timestamp, book_id) where average < -1;"
+```
+select * from (select book_id, timestamp, avg(change) as average 
+from rank where category_id <> 6 group by timestamp, book_id) where average < -1;"
+```
 
 
 Use 2 sub-selects. first select all the negative changes. Then, group them by timestamp and book id. Finally, keep only
@@ -52,16 +56,21 @@ those times and books were all 4 categories (including the global AWS best selle
 the sum of changes was less than 5000 to accomodate for eal shift and not just Amazon removing other books from
 category.
 
-```select book_id, timestamp from (
-        select book_id, timestamp, count(*) as changes, sum(change) as total  from (
-            select * from rank where change < 0)
-        group by timestamp, book_id)
-   where changes = 4 and total < -12500;```
-
-
+```
+select book_id, timestamp from (
+    select book_id, timestamp, count(*) as changes, sum(change) as total  from (
+        select * from rank where change < 0)
+    group by timestamp, book_id)
+where changes = 4 and total < -12500;```
 ```
 
 ## Here is the ultimate query, including time formatting
+```bash
+sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -12500 and timestamp > datetime('now','-2 day');"
 ```
-sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=6 and change < -12500 and timestamp > datetime('now','-2 day');"
+
+If you want to watch the changes every hour:
+
+```bash
+watch -n 3600 -x sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -12500 and timestamp > datetime('now','-2 day');"
 ```
