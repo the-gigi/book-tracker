@@ -64,13 +64,18 @@ select book_id, timestamp from (
 where changes = 4 and total < -12500;```
 ```
 
+
+select book_id, timestamp from (select book_id, timestamp, count(*) as changes, sum(change) as total  from (select * from rank where change < 0) group by timestamp, book_id) where changes = 4 and total < -12500;
+
+
+
 ## Here is the ultimate query, including time formatting
 ```bash
 sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -12500 and timestamp > datetime('now','-2 day');"
 ```
 
-If you want to watch the changes every hour:
+If you want to watch for overall changes every hour:
 
 ```bash
-watch -n 3600 -x sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -12500 and timestamp > datetime('now','-2 day');"
+watch -n 3600 -x sqlite3 book-tracker.db "select count(*) from rank where change < -12500;"
 ```
