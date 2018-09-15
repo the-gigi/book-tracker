@@ -88,10 +88,10 @@ def scrape_page_with_requests(url):
     return result
 
 
-def scrape_page(url):
+def scrape_page_with_puppeteer(url):
     session = HTMLSession()
     r = session.get(url)
-    r.html.render()
+    r.html.render(retries=1, wait=3.0)
     page = r.html
     title = page.find('#title')[0].find('span')
     if title is None:
@@ -122,6 +122,8 @@ def scrape_page(url):
 
     return result
 
+
+scrape_page = scrape_page_with_requests
 
 def main():
     book_urls = (
