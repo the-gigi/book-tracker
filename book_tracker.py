@@ -31,11 +31,12 @@ def update_rank(session, book, category_name, rank, timestamp):
 def track_books():
     session = get_session()
     now = datetime.utcnow().replace(second=0, microsecond=0)
+    timestamp = now
     try:
         q = session.query
         try:
             last_update_time = q(m.Rank).order_by(m.Rank.timestamp.desc()).first().timestamp
-        except Exception:
+        except Exception as e:
             last_update_time = now - 2 * HOUR
         time_since_last_update = now - last_update_time
         if time_since_last_update < HOUR:

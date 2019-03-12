@@ -5,18 +5,20 @@ from sqlalchemy.orm import sessionmaker
 
 from models import Base
 
-Session = None
+nop = lambda: None
+
+CreateSession = nop
 
 
 def get_session():
-    if Session is None:
+    if CreateSession == nop:
         init()
-    return Session()
+    return CreateSession()
 
 
 def init():
     connection_string = os.environ.get('BOOK_TRACKER_CONNECTION_STRING', 'sqlite:///book-tracker.db')
     db = create_engine(connection_string)
-    global Session
-    Session = sessionmaker(db)
+    global CreateSession
+    CreateSession = sessionmaker(db)
     Base.metadata.create_all(db)

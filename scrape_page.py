@@ -35,23 +35,6 @@ def get_page_content_with_requests(url):
     return content
 
 
-def get_page_content_with_selenium(url):
-    """ """
-    # proxy = get_proxy()
-    # p = Proxy()
-    # p.proxy_type = ProxyType.MANUAL
-    # p.http_proxy = proxy
-    # p.socks_proxy = proxy
-    # p.ssl_proxy = proxy
-    #
-    # capabilities = webdriver.DesiredCapabilities.CHROME
-    # p.add_to_capabilities(capabilities)
-    # global driver
-    # # driver = webdriver.Chrome(desired_capabilities=capabilities)
-    # driver = webdriver.Chrome()
-    # driver.get(url)
-
-
 def scrape_page_with_requests(url):
     """
     """
@@ -123,7 +106,8 @@ def scrape_page_with_puppeteer(url):
     return result
 
 
-scrape_page = scrape_page_with_requests
+scrape_page = scrape_page_with_puppeteer
+
 
 def main():
     book_urls = (
