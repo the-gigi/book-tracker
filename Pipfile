@@ -9,6 +9,7 @@ requests = "*"
 SQLAlchemy = "*"
 alembic = "*"
 requests-html = "*"
+sandman2 = "*"
 
 [dev-packages]
 

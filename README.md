@@ -4,17 +4,32 @@ Keep track of the sales rank of books on Amazon
 
 # Installation
 
+## Install pre-requisites
 
+Requires [sqlite3](https://www.sqlite.org) (already installed on Mac)
 Requires [pipenv](https://docs.pipenv.org/)
 
-`pipenv install`
+`$ pipenv install`
 
+## Populate DB
+
+Run the following commands:
+
+```
+$ pipenv run python -c 'from db import init; init()'
+
+$ sqlite3 book-tracker.db < book.sql
+```
+
+# Command-line usage
+
+`$ pipenv run python book_tracker.py`
 
 # REST API + Admin interface
-
+ 
 Launch with:
 
-`sandman2ctl sqlite+pysqlite:///book-tracker.db`
+`$ pipenv run sandman2ctl sqlite+pysqlite:///book-tracker.db`
 
 a REST API is available at `http://localhost:5000`
 
@@ -52,8 +67,8 @@ from rank where category_id <> 6 group by timestamp, book_id) where average < -1
 
 
 Use 2 sub-selects. first select all the negative changes. Then, group them by timestamp and book id. Finally, keep only
-those times and books were all 4 categories (including the global AWS best seller rank) improved at the same time and
-the sum of changes was less than 5000 to accomodate for eal shift and not just Amazon removing other books from
+those times and books where all 4 categories (including the global AWS best seller rank) improved at the same time and
+the sum of changes was less than 12500 to accommodate for real shift and not just Amazon removing other books from
 category.
 
 ```
