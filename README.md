@@ -95,11 +95,11 @@ select book_id, timestamp from (select book_id, timestamp, count(*) as changes, 
 
 ## Here is the ultimate query, including time formatting
 ```bash
-sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -12500) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -12500 and timestamp > datetime('now','-2 day');"
+sqlite3 book-tracker.db "select book_id, strftime('%m-%d-%Y %H:%M', timestamp), rank, change from rank where timestamp in (select timestamp from rank where change < -30000) and category_id=(select id from category where name='Amazon Best Sellers Rank') and change < -30000 and timestamp > datetime('now','-2 day');"
 ```
 
 If you want to watch for overall changes every hour:
 
 ```bash
-watch -n 3600 -x sqlite3 book-tracker.db "select count(*) from rank where change < -12500;"
+watch -n 3600 -x sqlite3 book-tracker.db "select count(*) from rank where change < -30000;"
 ```
