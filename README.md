@@ -28,13 +28,7 @@ $ sqlite3 book-tracker.db < book.sql
 
 ## Killing it
 
-Sometimes book tracker can get stuck due to networking issues, Run this command to kill it and then restart it:
-
-`$ kill -9 $(ps aux | grep book_tracker | grep -v grep | awk '{ print $2 }')`
-
-You may also need to kill orphan Chromium instances:
-
-`$ killall Chromium`
+Sometimes book tracker can get stuck due to networking issues, Run `kill.sh` to kill it and orphan Chromium instances too
 
 # REST API + Admin interface
  
