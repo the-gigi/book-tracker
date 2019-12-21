@@ -52,8 +52,8 @@ def track_books():
             print(f'[{timestamp}] --- {book.name} ---')
             r = scrape_page(book.url)
             for category_name, rank in r['categories'].items():
-                if category_name == 'Amazon Best Seller Rank':
-                    print(f'{category_name}: {rank}')
+                if category_name == 'Amazon Best Sellers Rank':
+                    print(f'{category_name}: {rank:,}')
                 update_rank(session, book, category_name, rank, timestamp)
         session.commit()
     except Exception as e:
