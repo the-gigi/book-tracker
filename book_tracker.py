@@ -48,12 +48,13 @@ def track_books():
             timestamp = now
 
         books = q(m.Book).filter_by(track=True).all()
+        print(f'[{timestamp}] --------------------')
+        max_book_name = max(len(b.name) for b in books)
         for book in books:
-            print(f'[{timestamp}] --- {book.name} ---')
             r = scrape_page(book.url)
             for category_name, rank in r['categories'].items():
                 if category_name == 'Amazon Best Sellers Rank':
-                    print(f'{category_name}: {rank:,}')
+                    print(f'{book.name: <{max_book_name}} : {rank:,}')
                 update_rank(session, book, category_name, rank, timestamp)
         session.commit()
     except Exception as e:
