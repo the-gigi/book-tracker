@@ -1,3 +1,5 @@
+import contextlib
+from io import StringIO
 import json
 import random
 from collections import OrderedDict
@@ -71,10 +73,41 @@ def scrape_page_with_requests(url):
     return result
 
 
+def eat_output(f):
+    """This decorators directs standard output and standard error to a memory buffer
+    """
+
+    def decorated(*args, **kwargs):
+        buffer = StringIO()
+        with contextlib.redirect_stdout(buffer):
+            with contextlib.redirect_stderr(buffer):
+                return f(*args, **kwargs)
+
+    return decorated
+
+
+@eat_output
+def render_html(r):
+    """Render the HTML of the response
+
+    This wraps the actual command with a decorator that hides standard output and standard error
+    because the command started generating benign yet annoying message to the screen:
+
+    ```
+    Future exception was never retrieved
+    future: <Future finished exception=NetworkError('Protocol error (Target.sendMessageToTarget):
+    No session with given id')>
+    pyppeteer.errors.NetworkError: Protocol error (Target.sendMessageToTarget): No session with given id
+    ```
+
+    """
+    r.html.render(retries=1, wait=3.0)
+
+
 def scrape_page_with_puppeteer(url):
     session = HTMLSession()
     r = session.get(url)
-    r.html.render(retries=1, wait=3.0)
+    render_html(r)
     page = r.html
     title = page.find('#title')[0].find('span')
     if title is None:
