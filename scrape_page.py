@@ -144,8 +144,9 @@ scrape_page = scrape_page_with_puppeteer
 
 def main():
     book_urls = (
-        'https://www.amazon.com/Mastering-Kubernetes-Gigi-Sayfan-ebook/dp/B01MXVUXDY',
-        'https://www.amazon.com/Mastering-Kubernetes-Gigi-Sayfan/dp/1786461005'
+        'https://www.amazon.com/Mastering-Kubernetes-container-orchestration-distributed-ebook-dp-B08BLLY5B8/dp/B08BLLY5B8',
+        # 'https://www.amazon.com/Mastering-Kubernetes-Gigi-Sayfan-ebook/dp/B01MXVUXDY',
+        # 'https://www.amazon.com/Mastering-Kubernetes-Gigi-Sayfan/dp/1786461005'
     )
 
     for url in book_urls:
