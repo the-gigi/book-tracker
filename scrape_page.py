@@ -104,37 +104,56 @@ def render_html(r):
     r.html.render(retries=1, wait=3.0)
 
 
-def scrape_page_with_puppeteer(url):
+def get_content_with_puppeteer(url):
     session = HTMLSession()
-    r = session.get(url)
+    proxy = get_proxy()
+    r = session.get(url, proxies=dict(http=proxy))
     render_html(r)
     page = r.html
+    return r.content, page
+
+
+def scrape_page_with_puppeteer(url):
+    content, page = get_content_with_puppeteer(url)
+
     title = page.find('#title')[0].find('span')
     if title is None:
-        if 'Robot Check' in r.content:
+        if 'Robot Check' in content:
             print('Oh-oh, robot check failed. Shuffle proxy list and/or UA list...')
         else:
             print('The title is missing for "{}". Skipping :-('.format(url))
-        open('content.txt', 'w').write(r.content)
+        open('content.txt', 'w').write(content)
         return
     book_name = ' - '.join(x.text.strip() for x in title)
 
-    result = dict(book_name=book_name,
-                  categories=OrderedDict())
+    s = [s for s in page.find('span') if 'Best-sellers rank' in s.text][0]
+    sales_rank = s.find('span')[2].text[1:].split()[0].replace(',', '')
 
-    categories = page.find('#SalesRank > ul > li')
+    return int(sales_rank)
 
-    for c in categories:
-        name = '/'.join(x.text.replace(' >', '') for x in c.find('a'))
-        rank = int(c.find('span')[0].text[1:])
-        result['categories'][name] = rank
-
-    # Add the Amazon best seller rank as another category
-    text = page.find('#SalesRank')[0].text
-    tokens = [a for a in text.split('\n') if a][0].split(':')
-    name = tokens[0]
-    rank = int(tokens[1].strip().split(' ')[0][1:].replace(',', ''))
-    result['categories'][name] = rank
+    # result = dict(book_name=book_name,
+    #               categories=OrderedDict())
+    # categories = page.find('#SalesRank > ul > li')
+    #
+    # for c in categories:
+    #     name = '/'.join(x.text.replace(' >', '') for x in c.find('a'))
+    #     rank = int(c.find('span')[0].text[1:])
+    #     result['categories'][name] = rank
+    #
+    # # Add the Amazon best seller rank as another category
+    # try:
+    #     # text = page.find('#SalesRank')[0].text
+    #     s = [s for s in page.find('span') if 'Best-sellers rank' in s.text][0]
+    #     text = s.find('span')[2].text
+    #
+    # except Exception as e:
+    #     s = [s for s in page.find('span') if 'Best-sellers rank' in s.text][0]
+    #     text = s.find('span')[2].text
+    #
+    # tokens = [a for a in text.split('\n') if a][0].split(':')
+    # name = tokens[0]
+    # rank = int(tokens[1].strip().split(' ')[0][1:].replace(',', ''))
+    # result['categories'][name] = rank
 
     return result
 
