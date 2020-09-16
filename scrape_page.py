@@ -123,11 +123,15 @@ def scrape_page_with_puppeteer(url):
             print('The title is missing for "{}". Skipping :-('.format(url))
         open('content.txt', 'w').write(content)
         return
-    book_name = ' - '.join(x.text.strip() for x in title)
 
-    s = [s for s in page.find('span') if 'Best-sellers rank' in s.text][0]
-    sales_rank = s.find('span')[2].text[1:].split()[0].replace(',', '')
-    return int(sales_rank)
+    s = [s for s in page.find('span') if 'Best-sellers rank' in s.text]
+    if len(s):
+        sales_rank = s[0].find('span')[2].text[1:].split()[0]
+    else:
+        s = [s for s in page.find('span') if 'Best Sellers Rank' in s.text][0]
+        sales_rank = s.text.split()[3][1:]
+
+    return int(sales_rank.replace(',', ''))
 
 
 scrape_page = scrape_page_with_puppeteer
