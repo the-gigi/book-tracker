@@ -115,15 +115,15 @@ def get_content_with_puppeteer(url):
 
 def scrape_page_with_puppeteer(url):
     content, page = get_content_with_puppeteer(url)
-    title = page.find('#title')[0].find('span')
-    if title is None:
+    title = page.find('#title')
+    if not title:
+        content = content.decode('utf-8')
         if 'Robot Check' in content:
             print('Oh-oh, robot check failed. Shuffle proxy list and/or UA list...')
         else:
             print('The title is missing for "{}". Skipping :-('.format(url))
         open('content.txt', 'w').write(content)
         return
-
     s = [s for s in page.find('span') if 'Best-sellers rank' in s.text]
     if len(s):
         sales_rank = s[0].find('span')[2].text[1:].split()[0]
