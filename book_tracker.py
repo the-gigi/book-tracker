@@ -52,6 +52,9 @@ def track_books():
         max_book_name = max(len(b.name) for b in books)
         for book in books:
             rank = scrape_page(book.url)
+            if rank is None:
+                raise RuntimeError('Unable to scrape page')
+
             category_name = 'Amazon Best Sellers Rank'
             print(f'{book.name: <{max_book_name}} : {rank:,}')
             update_rank(session, book, category_name, rank, timestamp)
