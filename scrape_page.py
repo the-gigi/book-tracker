@@ -1,6 +1,5 @@
 import contextlib
 from io import StringIO
-import json
 import random
 from collections import OrderedDict
 from pprint import pprint
@@ -8,16 +7,9 @@ import requests
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 
-from config import proxies, user_agents
+from config import user_agents
 
-
-def get_proxy():
-    r = requests.get('http://pubproxy.com/api/proxy')
-    try:
-        content = json.loads(r.content)
-        return content['data'][0]['ipPort']
-    except Exception as e:
-        return random.choice(proxies)
+from proxies import get_proxy
 
 
 def get_user_agent():
@@ -40,7 +32,6 @@ def get_page_content_with_requests(url):
 def scrape_page_with_requests(url):
     """
     """
-    result = ''
     content = get_page_content_with_requests(url)
     page = BeautifulSoup(content, 'html.parser')
 
@@ -104,7 +95,7 @@ def render_html(r):
     r.html.render(retries=1, wait=3.0)
 
 
-def get_content_with_puppeteer(url):
+def get_content_with_puppeteer(url, with_proxy=True):
     session = HTMLSession()
     proxy = get_proxy()
     r = session.get(url, proxies=dict(http=proxy))
