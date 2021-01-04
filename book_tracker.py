@@ -1,3 +1,7 @@
+import traceback
+
+import sys
+
 from datetime import datetime, timedelta
 import time
 
@@ -61,7 +65,7 @@ def track_books():
         session.commit()
     except Exception as e:
         session.rollback()
-        print(e)
+        traceback.print_exc()
     finally:
         naptime = (timestamp + HOUR - datetime.utcnow().replace(second=0, microsecond=0)).seconds
         time.sleep(naptime)
