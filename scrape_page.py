@@ -1,3 +1,5 @@
+import os
+
 import contextlib
 from io import StringIO
 import random
@@ -14,6 +16,15 @@ from proxies import get_proxy
 
 def get_user_agent():
     return random.choice(user_agents)
+
+
+def restart():
+    """Restart the program from scratch
+
+    This is needed because puppeteer seems to leave files open
+    Eventually the program gets too many files open error.
+    """
+    os.execl(sys.executable, f'"{sys.executable}"', *sys.argv)
 
 
 def get_page_content_with_requests(url):
@@ -99,7 +110,11 @@ def get_content_with_puppeteer(url, with_proxy=True):
     session = HTMLSession()
     proxy = get_proxy()
     r = session.get(url, proxies=dict(http=proxy))
-    render_html(r)
+    try:
+        render_html(r)
+    except OSError as e:
+        print(f'Received OSError: {e}. Restarting...')
+        restart()
     page = r.html
     return r.content, page
 
