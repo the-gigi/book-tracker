@@ -1,4 +1,4 @@
-import os
+import subprocess
 import sys
 import contextlib
 from io import StringIO
@@ -10,7 +10,6 @@ from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 
 from config import user_agents
-
 from proxies import get_proxy
 
 
@@ -24,7 +23,8 @@ def restart():
     This is needed because puppeteer seems to leave files open
     Eventually the program gets too many files open error.
     """
-    os.execl(sys.executable, f'"{sys.executable}"', *sys.argv)
+    subprocess.Popen('pipenv run python book_tracker.py'.split())
+    sys.exit()
 
 
 def get_page_content_with_requests(url):
