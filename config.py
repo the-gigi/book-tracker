@@ -17,8 +17,9 @@ proxies = """
 proxies = [p if ':' in p else p + ':80' for p in proxies]
 
 user_agents = """
-    Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0
-    
+    Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) 
+    AppleWebKit/537.36 (KHTML, like Gecko) 
+    Chrome/91.0.4472.102 Safari/537.36    
 """.strip().split('\n')
 
 user_agents = [ua.strip() for ua in user_agents]
