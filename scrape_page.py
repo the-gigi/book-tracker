@@ -103,7 +103,7 @@ def render_html(r):
     ```
 
     """
-    r.html.render(retries=1, wait=3.0)
+    r.html.render(retries=1, wait=3.0, timeout=30.0)
 
 
 def get_content_with_puppeteer(url, with_proxy=True):
