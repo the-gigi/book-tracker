@@ -67,6 +67,7 @@
                 "sha256:fba402a4a47334742d782209a7c79bc448911afe1149d07bdabdf480b3e2f4b6"
             ],
             "markers": "python_version >= '3.6'",
+
             "version": "==8.0.1"
         },
         "cssselect": {
@@ -89,6 +90,7 @@
                 "sha256:a6209ca15eb63fc9385f38e452704113d679511d9574d09b2cf9183ae7d20dc9"
             ],
             "markers": "python_version >= '3.6'",
+
             "version": "==2.0.1"
         },
         "flask-admin": {
@@ -134,6 +136,7 @@
                 "sha256:9e724d68fc22902a1435351f84c3fb8623f303fffcc566a4cb952df8c572cff0"
             ],
             "markers": "python_version >= '3.6'",
+
             "version": "==2.0.1"
         },
         "jinja2": {
