@@ -9,17 +9,8 @@ Keep track of the sales rank of books on Amazon
 Requires [sqlite3](https://www.sqlite.org) (already installed on Mac)
 Requires [pipenv](https://docs.pipenv.org/)
 
-`$ pipenv install`
-
-## Populate DB
-
-Run the following commands:
-
-```
-$ pipenv run python -c 'from db import init; init()'
-
-$ sqlite3 book-tracker.db < book.sql
-```
+## Run installation script
+`$ ./install.sh`
 
 # Command-line usage
 
