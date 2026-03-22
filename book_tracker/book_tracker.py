@@ -13,6 +13,11 @@ def utcnow():
     return datetime.now(timezone.utc).replace(tzinfo=None, second=0, microsecond=0)
 
 
+def fmt(dt):
+    """Format a naive UTC datetime as local time string."""
+    return dt.replace(tzinfo=timezone.utc).astimezone().strftime('%Y-%m-%d %H:%M')
+
+
 def update_rank(session, book, category_name, rank, timestamp):
     q = session.query
     category = q(m.Category).filter_by(name=category_name).scalar()
@@ -48,10 +53,6 @@ def scrape_with_retries(url):
     return None
 
 
-def to_local(dt):
-    return dt.replace(tzinfo=timezone.utc).astimezone().strftime('%Y-%m-%d %H:%M')
-
-
 def track_books():
     session = get_session()
     now = utcnow()
@@ -66,13 +67,13 @@ def track_books():
         if time_since_last_update < HOUR:
             timestamp = last_update_time + HOUR
             until_next_hour = (timestamp - now).seconds
-            print(f'Sleeping {until_next_hour // 60} minutes until {to_local(timestamp)}')
+            print(f'Sleeping {until_next_hour // 60} minutes until {fmt(timestamp)}')
             time.sleep(until_next_hour)
         else:
             timestamp = now
 
         books = q(m.Book).filter_by(track=True).all()
-        print(f'[{to_local(timestamp)}] --------------------')
+        print(f'[{fmt(timestamp)}] --------------------')
         max_book_name = max(len(b.name) for b in books)
         category_name = 'Amazon Best Sellers Rank'
         for book in books:

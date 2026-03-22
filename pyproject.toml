@@ -5,11 +5,9 @@ description = "Track Amazon book sales rank over time"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  "requests",
   "beautifulsoup4",
   "SQLAlchemy",
   "alembic",
-  "requests-html",
   "lxml_html_clean",
   "sandman2",
   "playwright>=1.58.0",
