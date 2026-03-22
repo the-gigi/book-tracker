@@ -7,14 +7,18 @@ Keep track of the sales rank of books on Amazon
 ## Install pre-requisites
 
 Requires [sqlite3](https://www.sqlite.org) (already installed on Mac)
-Requires [pipenv](https://docs.pipenv.org/)
+Requires [uv](https://docs.astral.sh/uv/)
 
 ## Run installation script
 `$ ./install.sh`
 
+If you need to (re)initialize the database later:
+
+`$ uv run book-tracker-init`
+
 # Command-line usage
 
-`$ pipenv run python book_tracker.py`
+`$ uv run book-tracker`
 
 
 ## Killing it
@@ -25,7 +29,7 @@ Sometimes book tracker can get stuck due to networking issues, Run `kill.sh` to 
  
 Launch with:
 
-`$ pipenv run sandman2ctl sqlite+pysqlite:///book-tracker.db`
+`$ uv run book-tracker-ui sqlite+pysqlite:///book-tracker.db`
 
 a REST API is available at `http://localhost:5000`
 

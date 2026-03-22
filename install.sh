@@ -1,7 +1,5 @@
 # Install book-tracker
-pipenv install
+uv sync
 
 # Populate DB
-pipenv run python -c 'from db import init; init()'
-sqlite3 book-tracker.db < book.sql
-
+uv run book-tracker-init

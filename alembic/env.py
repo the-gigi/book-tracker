@@ -7,7 +7,7 @@ import sys
 cwd = os.getcwd()
 if cwd not in sys.path:
     sys.path.insert(0, cwd)
-import models
+from book_tracker import models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
