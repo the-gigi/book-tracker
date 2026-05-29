@@ -2,11 +2,13 @@ from datetime import datetime, timedelta, timezone
 import time
 
 from .db import get_session
-from .scrape_page import scrape_page
+from .proxies import get_proxy, record_proxy_failure, record_proxy_success
+from .scrape_page import get_last_failure_reason, log_fetch, scrape_page
 from . import models as m
 
 HOUR = timedelta(hours=1)
-MAX_RETRIES = 3
+MAX_RETRIES = 6
+MAX_BACKOFF_SECONDS = 20
 
 
 def utcnow():
@@ -39,16 +41,26 @@ def update_rank(session, book, category_name, rank, timestamp):
 
 
 def scrape_with_retries(url):
+    attempted_proxies = set()
     for attempt in range(MAX_RETRIES):
+        proxy = get_proxy(exclude=attempted_proxies)
+        attempted_proxies.add(proxy)
         try:
-            rank = scrape_page(url)
+            rank = scrape_page(url, attempt=attempt + 1, proxy=proxy)
             if rank is not None:
+                record_proxy_success(proxy)
                 return rank
+            record_proxy_failure(proxy, get_last_failure_reason())
         except Exception as e:
-            print(f'  Attempt {attempt + 1}/{MAX_RETRIES} failed: {e}')
+            error = str(e).splitlines()[0]
+            record_proxy_failure(proxy, f'{type(e).__name__}: {error}')
+            log_fetch(
+                f'attempt={attempt + 1} event=exception '
+                f'error={type(e).__name__}: {error}'
+            )
         if attempt < MAX_RETRIES - 1:
-            backoff = 2 ** attempt * 5
-            print(f'  Retrying in {backoff}s...')
+            backoff = min(2 ** attempt * 5, MAX_BACKOFF_SECONDS)
+            log_fetch(f'attempt={attempt + 1} event=retry backoff={backoff}s')
             time.sleep(backoff)
     return None
 
