@@ -38,6 +38,7 @@ STATE_FILE = Path('proxy_state.json')
 POOL_FILE = Path('proxy_pool.json')
 LOG_FILE = Path('scrape.log')
 REFRESH_INTERVAL = timedelta(hours=4)
+POOL_VALIDATION_VERSION = 'amazon-product-v1'
 MAX_CANDIDATES = 900
 MAX_PROXIES_TO_TEST = 350
 MAX_FRESH_PROXIES = 40
@@ -53,7 +54,10 @@ PROXY_SOURCES = (
     'https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=3000&country=all&ssl=all&anonymity=all',
 )
 PROXY_RE = re.compile(r'(?:https?://)?((?:\d{1,3}\.){3}\d{1,3}:\d{2,5})')
-TEST_URL = 'https://www.amazon.com/robots.txt'
+PRODUCT_TEST_URLS = (
+    'https://www.amazon.com/Design-Multi-Agent-Systems-Using-MCP/dp/1806116472',
+    'https://www.amazon.com/Design-Multi-Agent-Systems-Using-MCP-ebook/dp/B0G7YKPBCW/',
+)
 TEST_USER_AGENT = (
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
@@ -99,6 +103,20 @@ def save_state(state):
         json.dump(state, f, indent=2, sort_keys=True)
 
 
+def mark_validated_proxies(proxies):
+    state = load_state()
+    now = iso(utcnow())
+    for proxy in proxies:
+        record = state.setdefault(proxy, {})
+        record.setdefault('successes', 0)
+        record.setdefault('failures', 0)
+        record['consecutive_failures'] = 0
+        record['last_success'] = now
+        record['last_reason'] = None
+        record['quarantine_until'] = None
+    save_state(state)
+
+
 def load_pool():
     try:
         with POOL_FILE.open() as f:
@@ -116,6 +134,7 @@ def load_pool():
 def save_pool(proxy_list):
     data = {
         'refreshed_at': iso(utcnow()),
+        'validation': POOL_VALIDATION_VERSION,
         'proxies': proxy_list,
     }
     with POOL_FILE.open('w') as f:
@@ -124,7 +143,11 @@ def save_pool(proxy_list):
 
 def pool_is_fresh(pool):
     refreshed_at = parse_time(pool.get('refreshed_at'))
-    return refreshed_at is not None and refreshed_at + REFRESH_INTERVAL > utcnow()
+    return (
+        pool.get('validation') == POOL_VALIDATION_VERSION
+        and refreshed_at is not None
+        and refreshed_at + REFRESH_INTERVAL > utcnow()
+    )
 
 
 def fetch_proxy_source(url):
@@ -154,22 +177,26 @@ def fetch_proxy_candidates():
 
 def test_proxy(proxy):
     start = time.monotonic()
+    test_url = random.choice(PRODUCT_TEST_URLS)
     cmd = [
         'curl',
         '-fsSL',
         '--proxy',
         f'http://{proxy}',
         '--connect-timeout',
-        '3',
+        '4',
         '--max-time',
-        '7',
+        '10',
+        '--compressed',
         '-A',
         TEST_USER_AGENT,
+        '-H',
+        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         '-H',
         'Accept-Language: en-US,en;q=0.9',
         '-w',
         '\nCURL_STATUS:%{http_code}',
-        TEST_URL,
+        test_url,
     ]
     try:
         result = subprocess.run(
@@ -190,11 +217,26 @@ def test_proxy(proxy):
         except ValueError:
             status = None
 
+    body_lower = body.lower()
     blocked = any(
         marker in body
-        for marker in (b'/errors/validateCaptcha', b'Robot Check', b'validateCaptcha')
+        for marker in (
+            b'/errors/validateCaptcha',
+            b'Robot Check',
+            b'validateCaptcha',
+            b'Click the button below to continue shopping',
+        )
     )
-    if status and 200 <= status < 500 and not blocked:
+    product_page = any(
+        marker in body
+        for marker in (
+            b'id="productTitle"',
+            b'id="title"',
+            b'Best Sellers Rank',
+            b'detailBulletsWrapper_feature_div',
+        )
+    ) or b'design multi-agent' in body_lower
+    if status == 200 and product_page and not blocked:
         return proxy, time.monotonic() - start
     return None
 
@@ -221,6 +263,7 @@ def refresh_proxy_pool(force=False):
     candidates = fetch_proxy_candidates()
     fresh = test_proxy_candidates(candidates)
     if fresh:
+        mark_validated_proxies(fresh)
         proxy_list = ['DIRECT'] + fresh
         save_pool(proxy_list)
         log_proxy(
@@ -229,7 +272,11 @@ def refresh_proxy_pool(force=False):
         )
         return proxy_list
 
-    if pool is not None and pool.get('proxies'):
+    if (
+        pool is not None
+        and pool.get('validation') == POOL_VALIDATION_VERSION
+        and pool.get('proxies')
+    ):
         log_proxy(
             f'event=refresh_empty candidates={len(candidates)} '
             f'using_cached={len(pool["proxies"])}'
@@ -298,7 +345,10 @@ def get_proxy(exclude=None):
         # endpoints known to be bad.
         choices = [] if 'DIRECT' in exclude else ['DIRECT']
     if not choices and len(exclude) >= len(proxy_pool):
-        choices = proxy_pool[:]
+        for proxy in proxy_pool:
+            if proxy == 'DIRECT':
+                continue
+            choices.extend([proxy] * proxy_weight(proxy, state, now))
     if not choices:
         return None
     return random.choice(choices)

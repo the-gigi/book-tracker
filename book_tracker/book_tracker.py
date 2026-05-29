@@ -7,8 +7,8 @@ from .scrape_page import get_last_failure_reason, log_fetch, scrape_page
 from . import models as m
 
 HOUR = timedelta(hours=1)
-MAX_RETRIES = 6
-MAX_BACKOFF_SECONDS = 20
+MAX_RETRIES = 12
+MAX_BACKOFF_SECONDS = 10
 
 
 def utcnow():
@@ -44,6 +44,9 @@ def scrape_with_retries(url):
     attempted_proxies = set()
     for attempt in range(MAX_RETRIES):
         proxy = get_proxy(exclude=attempted_proxies)
+        if proxy is None:
+            log_fetch(f'attempt={attempt + 1} event=no_proxy_available')
+            break
         attempted_proxies.add(proxy)
         try:
             rank = scrape_page(url, attempt=attempt + 1, proxy=proxy)
