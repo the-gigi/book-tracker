@@ -285,6 +285,14 @@ def get_proxy(exclude=None):
             continue
         choices.extend([proxy] * proxy_weight(proxy, state, now))
     if not choices:
+        log_proxy('event=pool_exhausted action=force_refresh')
+        proxy_pool = refresh_proxy_pool(force=True)
+        for proxy in proxy_pool:
+            if proxy in exclude:
+                continue
+            choices.extend([proxy] * proxy_weight(proxy, state, now))
+
+    if not choices:
         # All remaining proxies are quarantined. Fall back only to DIRECT if it
         # has not already been tried for this scrape, instead of recycling
         # endpoints known to be bad.
