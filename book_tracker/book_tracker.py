@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 import time
 
 from .db import get_session
@@ -9,6 +10,13 @@ from . import models as m
 HOUR = timedelta(hours=1)
 MAX_RETRIES = 12
 MAX_BACKOFF_SECONDS = 10
+RUN_LOG_FILE = Path('tracker-output.log')
+
+
+def emit(message):
+    print(message, flush=True)
+    with RUN_LOG_FILE.open('a') as f:
+        f.write(f'{message}\n')
 
 
 def utcnow():
@@ -82,27 +90,27 @@ def track_books():
         if time_since_last_update < HOUR:
             timestamp = last_update_time + HOUR
             until_next_hour = (timestamp - now).seconds
-            print(f'Sleeping {until_next_hour // 60} minutes until {fmt(timestamp)}')
+            emit(f'Sleeping {until_next_hour // 60} minutes until {fmt(timestamp)}')
             time.sleep(until_next_hour)
         else:
             timestamp = now
 
         books = q(m.Book).filter_by(track=True).all()
-        print(f'[{fmt(timestamp)}] --------------------')
+        emit(f'[{fmt(timestamp)}] --------------------')
         max_book_name = max(len(b.name) for b in books)
         category_name = 'Amazon Best Sellers Rank'
         for book in books:
             rank = scrape_with_retries(book.url)
             if rank is None:
-                print(f'{book.name: <{max_book_name}} : FAILED (skipping)')
+                emit(f'{book.name: <{max_book_name}} : FAILED (skipping)')
                 continue
 
-            print(f'{book.name: <{max_book_name}} : {rank:,}')
+            emit(f'{book.name: <{max_book_name}} : {rank:,}')
             update_rank(session, book, category_name, rank, timestamp)
         session.commit()
     except Exception as e:
         session.rollback()
-        print(f'Error: {e}')
+        emit(f'Error: {e}')
     finally:
         naptime = (timestamp + HOUR - utcnow()).seconds
         time.sleep(naptime)

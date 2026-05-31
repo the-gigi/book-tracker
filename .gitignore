@@ -60,3 +60,7 @@ book-tracker.db
 proxy_state.json
 proxy_pool.json
 content.txt
+tracker-output.log
+watchdog.log
+watchdog-process.log
+.book-tracker-watchdog.pid

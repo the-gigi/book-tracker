@@ -19,6 +19,7 @@ build-backend = "uv_build"
 
 [project.scripts]
 book-tracker = "book_tracker.book_tracker:main"
+book-tracker-watchdog = "book_tracker.watchdog:main"
 book-tracker-ui = "sandman2ctl:main"
 book-tracker-init = "book_tracker.init:main"
 
